@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAC碳化深度预测系统 | Carbonation Depth Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .results-section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .input-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 0.8fr 0.8fr;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .min-max {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        .model-selection, .method-selection {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .model-selection h3, .method-selection h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .radio-item:hover {
+            background: #e9ecef;
+        }
+
+        .radio-item input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .confidence-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .confidence-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .confidence-controls input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            outline: none;
+        }
+
+        .confidence-controls input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .results-display {
+            min-height: 300px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .result-highlight {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            padding: 10px;
+            background: #f1f3f4;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-group {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ RAC碳化深度预测系统</h1>
+            <p>Recycled Aggregate Concrete Carbonation Depth Prediction System</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 输入参数部分 -->
+            <div class="input-section">
+                <h2 class="section-title">📋 输入参数 Input Parameters</h2>
+                
+                <div class="input-grid">
+                    <!-- 输入参数网格标题 -->
+                    <div class="input-group" style="background: #2c3e50; color: white; font-weight: bold;">
+                        <div>参数名称</div>
+                        <div>数值</div>
+                        <div>最小值</div>
+                        <div>最大值</div>
+                    </div>
+                    
+                    <!-- 动态生成输入字段 -->
+                    {% for key, (default, min_val, max_val, description) in feature_stats.items() %}
+                    <div class="input-group">
+                        <label for="{{ key }}">{{ description }}</label>
+                        <input type="number" id="{{ key }}" name="{{ key }}" 
+                               value="{{ default }}" 
+                               min="{{ min_val }}" 
+                               max="{{ max_val }}" 
+                               step="0.01">
+                        <div class="min-max">{{ "%.2f"|format(min_val) }}</div>
+                        <div class="min-max">{{ "%.2f"|format(max_val) }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- 模型选择 -->
+                <div class="model-selection">
+                    <h3>🤖 预测模型选择</h3>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="XGB" checked>
+                            <span>XGBoost</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="RF">
+                            <span>Random Forest</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="GB">
+                            <span>Gradient Boosting</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="SVR">
+                            <span>SVR</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="KNN">
+                            <span>K-NN</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="model" value="PRR">
+                            <span>Polynomial</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 不确定性量化方法选择 -->
+                <div class="method-selection">
+                    <h3>📊 不确定性量化方法</h3>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="J">
+                            <span>Jackknife</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="J+" checked>
+                            <span>Jackknife+</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="WJ+">
+                            <span>Weighted J+</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="CV">
+                            <span>Cross Validation</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="CV+">
+                            <span>CV+</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="method" value="WCV+">
+                            <span>Weighted CV+</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 置信水平设置 -->
+                <div class="confidence-section">
+                    <h3>📈 置信水平设置</h3>
+                    <div class="confidence-controls">
+                        <label for="confidence">置信水平:</label>
+                        <input type="range" id="confidence" min="0.80" max="0.99" step="0.01" value="0.95">
+                        <input type="number" id="confidence-display" min="0.80" max="0.99" step="0.01" value="0.95">
+                        <span>%</span>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="predict()">🎯 预测</button>
+                    <button class="btn btn-secondary" onclick="resetInputs()">🔄 重置</button>
+                    <button class="btn btn-success" onclick="loadExample()">📄 示例</button>
+                </div>
+            </div>
+
+            <!-- 结果显示部分 -->
+            <div class="results-section">
+                <h2 class="section-title">📊 预测结果 Prediction Results</h2>
+                <div id="results-display" class="results-display">
+                    <div class="loading" style="display: none;" id="loading">
+                        正在计算预测结果...
+                    </div>
+                    <div id="initial-message" style="text-align: center; padding: 50px; color: #7f8c8d;">
+                        <h3>🚀 欢迎使用RAC碳化深度预测系统</h3>
+                        <p>请在左侧输入混凝土配合比参数，然后点击"预测"按钮获得结果</p>
+                        <br>
+                        <p style="font-size: 0.9em;">
+                            本系统基于先进的机器学习算法和不确定性量化技术，<br>
+                            为再生骨料混凝土的碳化深度提供准确的预测和置信区间。
+                        </p>
+                    </div>
+                    <div id="results-content" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 同步置信水平滑块和输入框
+        document.getElementById('confidence').addEventListener('input', function() {
+            document.getElementById('confidence-display').value = this.value;
+        });
+
+        document.getElementById('confidence-display').addEventListener('input', function() {
+            document.getElementById('confidence').value = this.value;
+        });
+
+        // 预测函数
+        async function predict() {
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('initial-message').style.display = 'none';
+            document.getElementById('results-content').style.display = 'none';
+
+            // 收集输入参数
+            const inputParams = {};
+            const inputs = document.querySelectorAll('.input-grid input[type="number"]');
+            inputs.forEach(input => {
+                inputParams[input.name] = parseFloat(input.value);
+            });
+
+            // 获取模型和方法选择
+            const model = document.querySelector('input[name="model"]:checked').value;
+            const method = document.querySelector('input[name="method"]:checked').value;
+            const confidenceLevel = parseFloat(document.getElementById('confidence').value);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        input_params: inputParams,
+                        model: model,
+                        method: method,
+                        confidence_level: confidenceLevel
+                    })
+                });
+
+                const result = await response.json();
+
+                // 隐藏加载状态
+                document.getElementById('loading').style.display = 'none';
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    displayError(result.error);
+                }
+
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                displayError('网络错误: ' + error.message);
+            }
+        }
+
+        // 显示结果
+        function displayResults(result) {
+            const resultsContent = document.getElementById('results-content');
+            
+            const accuracy = result.relative_uncertainty < 20 ? '高精度' : 
+                           result.relative_uncertainty < 40 ? '中等精度' : '低精度';
+            
+            const accuracyColor = result.relative_uncertainty < 20 ? '#27ae60' : 
+                                result.relative_uncertainty < 40 ? '#f39c12' : '#e74c3c';
+
+            resultsContent.innerHTML = `
+                <div class="result-card">
+                    <div class="result-highlight">
+                        预测碳化深度: ${result.prediction} mm
+                    </div>
+                    
+                    <div class="result-details">
+                        <div class="detail-item">
+                            <div class="detail-label">置信区间下限</div>
+                            <div class="detail-value">${result.lower_bound} mm</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">置信区间上限</div>
+                            <div class="detail-value">${result.upper_bound} mm</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">区间宽度</div>
+                            <div class="detail-value">${result.interval_width} mm</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">相对不确定性</div>
+                            <div class="detail-value">${result.relative_uncertainty}%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">预测模型</div>
+                            <div class="detail-value">${result.model}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">量化方法</div>
+                            <div class="detail-value">${result.method}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">置信水平</div>
+                            <div class="detail-value">${(result.confidence_level * 100).toFixed(1)}%</div>
+                        </div>
+                        <div class="detail-item" style="background-color: ${accuracyColor}; color: white;">
+                            <div class="detail-label" style="color: white;">预测精度</div>
+                            <div class="detail-value" style="color: white;">${accuracy}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f4f8; border-radius: 8px;">
+                        <h4 style="color: #2c3e50; margin-bottom: 10px;">🔍 工程建议:</h4>
+                        <ul style="color: #2c3e50; margin-left: 20px;">
+                            <li>考虑到预测不确定性，建议在设计中留有适当安全裕量</li>
+                            <li>定期监测混凝土结构的实际碳化情况</li>
+                            <li>优化配合比设计可有效降低碳化风险</li>
+                            <li>环境因素对碳化速度影响显著，需重点关注</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            resultsContent.style.display = 'block';
+        }
+
+        // 显示错误信息
+        function displayError(error) {
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = `
+                <div class="error">
+                    <h3>❌ 预测失败</h3>
+                    <p>错误信息: ${error}</p>
+                    <p>请检查输入参数是否正确，然后重试。</p>
+                </div>
+            `;
+            resultsContent.style.display = 'block';
+        }
+
+        // 重置输入
+        function resetInputs() {
+            const inputs = document.querySelectorAll('.input-grid input[type="number"]');
+            inputs.forEach(input => {
+                input.value = input.getAttribute('value');
+            });
+            
+            // 重置模型选择
+            document.querySelector('input[name="model"][value="XGB"]').checked = true;
+            document.querySelector('input[name="method"][value="J+"]').checked = true;
+            
+            // 重置置信水平
+            document.getElementById('confidence').value = 0.95;
+            document.getElementById('confidence-display').value = 0.95;
+            
+            // 清除结果
+            document.getElementById('results-content').style.display = 'none';
+            document.getElementById('initial-message').style.display = 'block';
+        }
+
+        // 加载示例数据
+        async function loadExample() {
+            try {
+                const response = await fetch('/example');
+                const exampleData = await response.json();
+                
+                for (const [key, value] of Object.entries(exampleData)) {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        input.value = value;
+                    }
+                }
+                
+                alert('✅ 示例数据已加载完成！您可以直接点击"预测"按钮查看结果。');
+                
+            } catch (error) {
+                alert('❌ 加载示例数据失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
