@@ -242,15 +242,8 @@ class MLCarbonationPredictor:
         # 确保不确定性在合理范围内
         total_uncertainty = max(0.05, min(0.50, total_uncertainty))  # 5%-50%范围
         
-        # 📊 五、综合分析报告
+        # 📊 五、ML分析报告（简化版）
         analysis = {
-            'mix_design_quality': {
-                'w_c_ratio': round(w_c_ratio, 3),
-                'fa_content': round(fa_ratio * 100, 1),
-                'ra_replacement': round(ra_ratio * 100, 1),
-                'quality_score': round(quality_score, 3),
-                'quality_grade': self._get_quality_grade(quality_score)
-            },
             'ml_performance': {
                 'selected_model': model,
                 'expected_r2': round(expected_r2, 3),
@@ -258,11 +251,10 @@ class MLCarbonationPredictor:
                 'uncertainty_factor': round(model_uncertainty_factor, 2)
             },
             'uncertainty_breakdown': {
-                'base_uncertainty': round(base_uncertainty * 100, 1),
+                'final_uncertainty': round(total_uncertainty * 100, 1),
                 'model_correction': round(model_uncertainty_factor, 2),
                 'experimental_stability': round(co2_stability * time_stability, 2),
-                'environmental_factor': round(env_stability, 2),
-                'final_uncertainty': round(total_uncertainty * 100, 1)
+                'environmental_factor': round(env_stability, 2)
             },
             'prediction_reliability': self._assess_reliability(total_uncertainty)
         }
@@ -279,19 +271,7 @@ class MLCarbonationPredictor:
         
         return final_prediction, lower_bound, upper_bound, analysis
     
-    def _get_quality_grade(self, quality_score):
-        """获取配合比质量等级"""
-        if quality_score >= 0.95:
-            return "超优 (S+)"
-        elif quality_score >= 0.85:
-            return "优秀 (A)"
-        elif quality_score >= 0.70:
-            return "良好 (B)"
-        elif quality_score >= 0.50:
-            return "一般 (C)"
-        else:
-            return "较差 (D)"
-    
+
     def _assess_reliability(self, uncertainty):
         """评估预测可靠性"""
         if uncertainty <= 0.10:
@@ -309,7 +289,7 @@ predictor = MLCarbonationPredictor()
 @app.route('/')
 def index():
     """主页面"""
-    return render_template('ml_index.html', feature_stats=predictor.feature_stats)
+    return render_template('simple_ml_index.html', feature_stats=predictor.feature_stats)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -354,31 +334,7 @@ def get_example():
     
     return jsonify(example_data)
 
-@app.route('/optimal')
-def get_optimal_params():
-    """获取最优参数组合"""
-    optimal_params = {
-        'cement': 300,
-        'fly_ash': 130,
-        'water': 150,
-        'coarse_agg': 950,
-        'recycled_agg': 250,
-        'water_absorption': 2.5,
-        'fine_agg': 680,
-        'superplasticizer': 5.0,
-        'compressive_strength': 50,
-        'carbon_concentration': 10,
-        'exposure_time': 28,
-        'temperature': 20,
-        'relative_humidity': 60
-    }
-    
-    return jsonify({
-        'optimal_params': optimal_params,
-        'description': '基于实际ML模型性能优化的最优参数组合',
-        'expected_uncertainty': '6.8%',
-        'reliability': '极高可靠性 - 适用于关键结构设计'
-    })
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
