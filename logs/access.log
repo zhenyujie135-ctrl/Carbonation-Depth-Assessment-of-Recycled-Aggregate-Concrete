@@ -1,0 +1,6 @@
+127.0.0.1 - - [14/Oct/2025:05:21:25 +0000] "GET / HTTP/1.1" 200 20602 "-" "curl/8.14.1"
+127.0.0.1 - - [14/Oct/2025:05:21:33 +0000] "POST /predict HTTP/1.1" 200 534 "-" "curl/8.14.1"
+127.0.0.1 - - [14/Oct/2025:05:22:20 +0000] "GET / HTTP/1.1" 200 20602 "-" "python-requests/2.32.4"
+127.0.0.1 - - [14/Oct/2025:05:22:50 +0000] "GET / HTTP/1.1" 200 20602 "-" "python-requests/2.32.4"
+10.12.34.188 - - [14/Oct/2025:05:23:03 +0000] "GET / HTTP/1.1" 200 20602 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/118.0.0.0 Safari/537.36"
+10.12.34.188 - - [14/Oct/2025:05:23:04 +0000] "GET /favicon.ico HTTP/1.1" 404 207 "https://5002-io345j3ofvh5e2qc8bjvs-6532622b.e2b.dev/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/118.0.0.0 Safari/537.36"
